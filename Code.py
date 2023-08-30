@@ -91,13 +91,12 @@ if target_day and target_day in class_routines:
     rss_feed_str = tostring(rss, encoding="utf-8").decode("utf-8")
 
     # Write the RSS feed to a file
-    with open(f'class_routines_{target_day.lower()}.xml', 'w') as rss_file:
+    rss_filename = f'class_routines_{target_day.lower()}.xml'
+    with open(rss_filename, 'w') as rss_file:
         rss_file.write(rss_feed_str)
 
     print(f"{target_day} class routines RSS feed generated successfully.")
-else:
-    print(f"No routine available for {current_day_name}.")
- 
+
     # Add and commit the changes using Git
     subprocess.run(["git", "add", rss_filename])
     commit_message = f"Update class routines for {target_day}"
