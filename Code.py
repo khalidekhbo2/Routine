@@ -1,38 +1,108 @@
-import ics
-import datetime
 from xml.etree.ElementTree import Element, SubElement, tostring
+import datetime
+import pytz
 
-# Load the ICS file
-with open('calendar.ics', 'r') as f:
-    calendar = ics.Calendar(f.read())
+# Get current date and day name in Bangladesh time
+bd_tz = pytz.timezone('Asia/Dhaka')
+current_date_time_bd = datetime.datetime.now(bd_tz)
+current_date = current_date_time_bd.strftime('%Y-%m-%d')
+current_day_name = current_date_time_bd.strftime('%A')
+
+# Check if it's past 2:30 PM
+is_past_afternoon = current_date_time_bd.hour >= 14 and current_date_time_bd.minute >= 30
 
 # Create an RSS feed XML structure
 rss = Element("rss", version="2.0")
 channel = SubElement(rss, "channel")
 
 title = SubElement(channel, "title")
-title.text = "Calendar Events"
+title.text = f"Class Routines - {current_date}"
 
 description = SubElement(channel, "description")
-description.text = "Upcoming events from the calendar."
+description.text = f"Class routines for {current_day_name}, {current_date}."
 
-for event in calendar.events:
-    item = SubElement(channel, "item")
+# Define class routines for each day
+class_routines = {
+    "Saturday": [
+        {"name": "Orthosurgery/Urology", "time": "7:00AM - 8:00AM"},
+        {"name": "Pharmacology", "time": "8:00AM - 9:00AM"},
+        {"name": "Break", "time": "9:00AM - 9:30AM"},
+        {"name": "Ward", "time": "9:30AM - 11:30AM"},
+        {"name": "Microbiology", "time": "11:30AM - 12:30PM"},
+        {"name": "Microbiology", "time": "12:30PM - 2:30PM"}
+    ],
+    "Sunday": [
+        {"name": "Medicine", "time": "7:00AM - 8:00AM"},
+        {"name": "Microbiology", "time": "8:00AM - 9:00AM"},
+        {"name": "Break", "time": "9:00AM - 9:30AM"},
+        {"name": "Ward", "time": "9:30AM - 11:30AM"},
+        {"name": "Break", "time": "11:30AM - 12:30PM"},
+        {"name": "Pathology", "time": "12:30PM - 2:30PM"}
+    ],
+    "Monday": [
+        {"name": "Pathology", "time": "7:00AM - 8:00AM"},
+        {"name": "Pharmacology", "time": "8:00AM - 9:00AM"},
+        {"name": "Break", "time": "9:00AM - 9:30AM"},
+        {"name": "Ward", "time": "9:30AM - 11:30AM"},
+        {"name": "Microbiology", "time": "11:30AM - 12:30PM"},
+        {"name": "Pharmacology", "time": "12:30PM - 2:30PM"}
+    ],
+    "Tuesday": [
+        {"name": "Pediatrics", "time": "7:00AM - 8:00AM"},
+        {"name": "Pathology", "time": "8:00AM - 9:00AM"},
+        {"name": "Break", "time": "9:00AM - 9:30AM"},
+        {"name": "Ward", "time": "9:30AM - 11:30AM"},
+        {"name": "Pharmacology", "time": "11:30AM - 12:30PM"},
+        {"name": "Microbiology", "time": "12:30PM - 2:30PM"}
+    ],
+    "Wednesday": [
+        {"name": "Surgery", "time": "7:00AM - 8:00AM"},
+        {"name": "Microbiology", "time": "8:00AM - 9:00AM"},
+        {"name": "Break", "time": "9:00AM - 9:30AM"},
+        {"name": "Ward", "time": "9:30AM - 11:30AM"},
+        {"name": "Pathology", "time": "11:30AM - 12:30PM"},
+        {"name": "Pathology", "time": "12:30PM - 2:30PM"}
+    ],
+    "Thursday": [
+        {"name": "Obs. & Gyne", "time": "7:00AM - 8:00AM"},
+        {"name": "Pharmacology", "time": "8:00AM - 9:00AM"},
+        {"name": "Break", "time": "9:00AM - 9:30AM"},
+        {"name": "Ward", "time": "9:30AM - 11:30AM"},
+        {"name": "Pathology", "time": "11:30AM - 12:30PM"},
+        {"name": "Pharmacology", "time": "12:30PM - 2:30PM"}
+    ]
+}
 
-    event_title = SubElement(item, "title")
-    event_title.text = event.name
+# Determine the routines to add based on the time of day
+target_day = current_day_name if not is_past_afternoon else (current_date_time_bd + datetime.timedelta(days=1)).strftime('%A')
 
-    event_description = SubElement(item, "description")
-    event_description.text = event.description
+if target_day and target_day in class_routines:
+    # Add class routines for the target day to the RSS feed
+    for class_info in class_routines[target_day]:
+        item = SubElement(channel, "item")
 
-    event_date = SubElement(item, "pubDate")
-    event_date.text = event.begin.format("ddd, DD MMM YYYY HH:mm:ss ZZ")
+        class_title = SubElement(item, "title")
+        class_title.text = class_info["name"]
 
-# Convert the XML structure to a string
-rss_feed_str = tostring(rss, encoding="utf-8").decode("utf-8")
+        class_description = SubElement(item, "description")
+        class_description.text = class_info["time"]
 
-# Write the RSS feed to a file
-with open('rss_feed.xml', 'w') as rss_file:
-    rss_file.write(rss_feed_str)
+    # Convert the XML structure to a string
+    rss_feed_str = tostring(rss, encoding="utf-8").decode("utf-8")
 
-print("RSS feed generated successfully.")
+    # Write the RSS feed to a file
+    with open(f'class_routines_{target_day.lower()}.xml', 'w') as rss_file:
+        rss_file.write(rss_feed_str)
+
+    print(f"{target_day} class routines RSS feed generated successfully.")
+else:
+    print(f"No routine available for {current_day_name}.")
+ 
+    # Add and commit the changes using Git
+    subprocess.run(["git", "add", rss_filename])
+    commit_message = f"Update class routines for {target_day}"
+    subprocess.run(["git", "commit", "-m", commit_message])
+
+    print("Changes committed to Git.")
+else:
+    print(f"No routine available for {current_day_name}.")
