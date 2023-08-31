@@ -92,7 +92,7 @@ if target_day and target_day in class_routines:
     rss_feed_str = tostring(rss, encoding="utf-8").decode("utf-8")
 
     # Write the RSS feed to a file
-    rss_filename = f'class_routines_{target_day.lower()}.xml'
+    rss_filename = f'rss_feed.xml'
     with open(rss_filename, 'w') as rss_file:
         rss_file.write(rss_feed_str)
 
